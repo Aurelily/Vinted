@@ -4,16 +4,27 @@ const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
 const morgan = require("morgan");
 require("dotenv").config();
+let cors = require("cors");
 
 const app = express();
+
 app.use(formidable());
+
 app.use(morgan("dev"));
+
+//Cette ligne fait bénifier de CORS à toutes les requêtes de notre serveur
+app.use(cors());
 
 //Config cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+//Route d'accueil pour MongoDB ATLAS
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Welcome to Vinted API by Lily !" });
 });
 
 //connect BDD
