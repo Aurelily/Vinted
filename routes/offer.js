@@ -1,0 +1,199 @@
+const express = require("express");
+const formidable = require("express-formidable");
+const cloudinary = require("cloudinary").v2;
+const router = express.Router();
+
+const isAuthenticated = require("../middlewares/isAuthenticated");
+
+const app = express();
+app.use(formidable());
+
+//import des models utilisés
+const User = require("../models/User");
+const Offer = require("../models/Offer");
+
+//route POST : /offer/publish : Publier une offre
+router.post("/offer/publish", isAuthenticated, async (req, res) => {
+  try {
+    const user = req.user;
+    //Deconstruction du body
+    const {
+      title,
+      description,
+      price,
+      condition,
+      city,
+      brand,
+      size,
+      color,
+    } = req.fields;
+    const picture = req.files.picture.path;
+
+    //Créer la nouvelle offre
+    const newOffer = new Offer({
+      product_name: title,
+      product_description: description,
+      product_price: price,
+      product_details: [
+        { MARQUE: brand },
+        { TAILLE: size },
+        { ETAT: condition },
+        { COULEUR: color },
+        { EMPLACEMENT: city },
+      ],
+      owner: req.user,
+    });
+    //upload de l'image définie dans postman
+    const resultUpload = await cloudinary.uploader.upload(picture, {
+      folder: `/vinted/offers/${newOffer._id}`,
+    });
+    // Ajouter le result de l'upload à newOffer
+    newOffer.product_image = resultUpload;
+    //sauver l'annonce
+    await newOffer.save();
+    //répondre au client
+    res.status(200).json(newOffer);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
+//route PUT : /offer/modify/:_id => Permet de modifier une offre à partir de son id en paramètre => A FINIR
+router.put("/offer/modify/:id", isAuthenticated, async (req, res) => {
+  try {
+    //Deconstruction du body avec toutes les options de modifications possibles
+    const {
+      title,
+      description,
+      price,
+      condition,
+      city,
+      brand,
+      size,
+      color,
+    } = req.fields;
+
+    //offre que l'on veut modifier
+    const offerToModify = await Offer.findById(req.params.id);
+    if (offerToModify) {
+      const keyToModify = await Offer.findByIdAndUpdate(
+        req.params.id,
+        req.fields,
+        { new: true }
+      );
+      res.status(200).json(keyToModify);
+    } else {
+      res.status(400).json({ message: "Project Id not exist !" });
+    }
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
+//route DELETE : /offer/delete/:_id => Permet de supprimer une offre => A FINIR
+router.delete("/offer/delete/:_id", isAuthenticated, async (req, res) => {
+  try {
+    const offerToDelete = req.params;
+    res.json(offerToDelete);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
+//route GET : /offers => Renvoi la liste d'annonce correspondant à la recherche filtrée
+router.get("/offers", async (req, res) => {
+  try {
+    //Définir les différentes sortes de requetes/recherches possibles
+    const reqTitle = req.query.title;
+    const reqPriceMin = req.query.priceMin;
+    const reqPriceMax = req.query.priceMax;
+    const reqSort = req.query.sort;
+    const reqPage = req.query.page;
+
+    // Je décide de mettre un type de tri par défaut croissant par prix
+    let sortType = { product_price: 1 };
+
+    //Je crée un objet vide qui contiendra mes clés de filtre
+    let filters = new Object();
+
+    //si il y a un title j'ajoute la clé product_name à mon objet filters'
+    if (reqTitle) {
+      filters.product_name = new RegExp(reqTitle, "i");
+    }
+
+    //si il y a une notion de prix min et/ou max j'ajoute la clé product_price à l'objet filters
+    if (reqPriceMin && reqPriceMax) {
+      filters.product_price = { $lte: reqPriceMax, $gte: reqPriceMin };
+    } else if (reqPriceMin) {
+      filters.product_price = { $gte: reqPriceMin };
+    } else if (reqPriceMax) {
+      filters.product_price = { $lte: reqPriceMax };
+    }
+    console.log(filters);
+
+    //si il y a un sort je tri selon ce qui est demandé : price-desc ou price-asc
+    if (reqSort) {
+      if (reqSort === "price-desc") {
+        sortType.product_price = -1;
+      } else if (reqSort === "price-asc") {
+        sortType.product_price = 1;
+      } else {
+        res.status(400).json({ error: "Invalid sort !" });
+      }
+    }
+
+    //Je gère ma PAGINATION :
+
+    // Je mets un nombre de page à ignorer par defaut (skip)
+    let pageToSkip = 0;
+
+    // Je mets le nombre limite (limit)d'offres par page que je décide par defaut dans une variable (si on a besoin de la modifier plus tard)
+    let pageLimit = 5;
+
+    if (reqPage > 1) {
+      pageToSkip = pageLimit * reqPage - pageLimit;
+    }
+
+    //Je mets mon objet filters dans ma requete find() pour obtenir mon résultat et y ajoute mon sort et ma pagination
+    let results = await Offer.find(filters)
+      .select("product_name product_price")
+      .sort(sortType)
+      .populate({
+        path: "owner",
+        select: "account",
+      })
+      .skip(pageToSkip)
+      .limit(pageLimit);
+
+    // calculer le nombre de résultats
+    const count = await Offer.countDocuments(filters);
+
+    //réponse au client
+    res.status(200).json({
+      count: count,
+      results: results,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+//route GET : /offer/:id => Récupérer les détails d'une annonce en fonction de son id en params
+router.get("/offer/:id", async (req, res) => {
+  try {
+    const offer = await (await Offer.findById(req.params.id)).populated({
+      path: "owner",
+      select: "account",
+    });
+    if (offer) {
+      return res.status(200).json({ offer });
+    } else {
+      res.status(404).json({ error: "There is no corresponding offer !" });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+//export du fichier routes
+module.exports = router;
