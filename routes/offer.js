@@ -61,40 +61,90 @@ router.post("/offer/publish", isAuthenticated, async (req, res) => {
 //route PUT : /offer/modify/:_id => Permet de modifier une offre à partir de son id en paramètre => A FINIR
 router.put("/offer/modify/:id", isAuthenticated, async (req, res) => {
   try {
-    //Deconstruction du body avec toutes les options de modifications possibles
-    const {
-      title,
-      description,
-      price,
-      condition,
-      city,
-      brand,
-      size,
-      color,
-    } = req.fields;
-
     //offre que l'on veut modifier
     const offerToModify = await Offer.findById(req.params.id);
-    if (offerToModify) {
-      const keyToModify = await Offer.findByIdAndUpdate(
-        req.params.id,
-        req.fields,
-        { new: true }
-      );
-      res.status(200).json(keyToModify);
-    } else {
-      res.status(400).json({ message: "Project Id not exist !" });
+    if (req.fields.title) {
+      offerToModify.product_name = req.fields.title;
     }
+    if (req.fields.description) {
+      offerToModify.product_description = req.fields.description;
+    }
+    if (req.fields.price) {
+      offerToModify.product_price = req.fields.price;
+    }
+    //Product_detail est un tableau composé d'objet que l'on doit parcourir :
+    const details = offerToModify.product_details;
+    for (let i = 0; i < details.length; i++) {
+      if (details[i].MARQUE) {
+        if (req.fields.brand) {
+          details[i].MARQUE = req.fields.brand;
+        }
+      }
+      if (details[i].TAILLE) {
+        if (req.fields.size) {
+          details[i].TAILLE = req.fields.size;
+        }
+      }
+      if (details[i].ÉTAT) {
+        if (req.fields.condition) {
+          details[i].ÉTAT = req.fields.condition;
+        }
+      }
+      if (details[i].COULEUR) {
+        if (req.fields.color) {
+          details[i].COULEUR = req.fields.color;
+        }
+      }
+      if (details[i].EMPLACEMENT) {
+        if (req.fields.city) {
+          details[i].EMPLACEMENT = req.fields.city;
+        }
+      }
+    }
+    // Notifie Mongoose que l'on a modifié le tableau product_details
+    offerToModify.markModified("product_details");
+
+    //Gère la modification de l'image uploadée
+
+    if (req.files.picture) {
+      //J'upload la nouvelle image
+      const resultUpload = await cloudinary.uploader.upload(
+        req.files.picture.path,
+        {
+          folder: `/vinted/offers/${req.params.id}`,
+        }
+      );
+      offerToModify.product_image = resultUpload;
+    }
+
+    //On sauve et on répond au client
+
+    await offerToModify.save();
+    res.status(200).json("Offer modified succesfully !");
   } catch (error) {
     res.json({ error: error.message });
   }
 });
 
 //route DELETE : /offer/delete/:_id => Permet de supprimer une offre => A FINIR
-router.delete("/offer/delete/:_id", isAuthenticated, async (req, res) => {
+router.delete("/offer/delete/:id", isAuthenticated, async (req, res) => {
   try {
-    const offerToDelete = req.params;
-    res.json(offerToDelete);
+    const offerToDelete = await Offer.findById(req.params.id);
+    const publicId = offerToDelete.product_image.public_id;
+
+    //Je supprime les images du dossier de l'offre à supprimer
+    await cloudinary.api.delete_resources_by_prefix(
+      `vinted/offers/${req.params.id}`
+    );
+
+    //Une fois le dossier vide, je peux le supprimer !
+    await cloudinary.api.delete_folder(`vinted/offers/${req.params.id}`);
+
+    //Je supprime l'offre
+
+    await offerToDelete.delete();
+
+    res.status(200).json("Offer deleted succesfully !");
   } catch (error) {
     res.json({ error: error.message });
   }
