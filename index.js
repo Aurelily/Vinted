@@ -6,6 +6,9 @@ const morgan = require("morgan");
 require("dotenv").config();
 let cors = require("cors");
 
+//import json des données des users
+const data = require("./datas/users.json");
+
 const app = express();
 
 app.use(formidable());
