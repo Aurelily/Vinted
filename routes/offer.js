@@ -205,7 +205,7 @@ router.get("/offers", async (req, res) => {
     }
 
     //Je mets mon objet filters dans ma requete find() pour obtenir mon résultat et y ajoute mon sort et ma pagination
-    let results = await Offer.find(filters)
+    let offers = await Offer.find(filters)
       .select("product_name product_price")
       .sort(sortType)
       .populate({
@@ -221,7 +221,7 @@ router.get("/offers", async (req, res) => {
     //réponse au client
     res.status(200).json({
       count: count,
-      results: results,
+      offers: offers,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
