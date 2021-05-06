@@ -34,18 +34,18 @@ router.post("/user/signup", async (req, res) => {
           username: username,
           phone: phone,
           password: password,
-          avatar: req.files.avatar.name,
+          // avatar: req.files.avatar.name,
         },
         token: token,
         hash: hash,
         salt: salt,
       });
-      const resultUpload = await cloudinary.uploader.upload(
-        req.files.avatar.path,
-        {
-          folder: `/vinted/users/${newUser._id.toString()}`,
-        }
-      );
+      // const resultUpload = await cloudinary.uploader.upload(
+      //   req.files.avatar.path,
+      //   {
+      //     folder: `/vinted/users/${newUser._id.toString()}`,
+      //   }
+      // );
 
       if (username) {
         await newUser.save();
@@ -54,7 +54,7 @@ router.post("/user/signup", async (req, res) => {
           _id: newUser._id,
           token: newUser.token,
           account: newUser.account,
-          avatar: resultUpload.secure_url,
+          // avatar: resultUpload.secure_url,
         });
       } else {
         res.status(400).json({ error: "Missing parameters" });
