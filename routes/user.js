@@ -48,7 +48,7 @@ router.post("/user/signup", async (req, res) => {
         }
       );
       // Ajouter le result de l'upload à newUser
-      newUser.account.avatarPath = resultUpload;
+      newUser.account.avatarPath = resultUpload.secure_url;
 
       if (username) {
         // Sauver le new User
