@@ -13,7 +13,7 @@ const User = mongoose.model("User", {
     phone: String,
     // avatar: { type: mongoose.Schema.Types.Mixed, default: {} }, //voir plus tard avec react
     avatar: Object,
-    avatarPath: String,
+    avatarPath: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
   token: String,
   hash: String,
