@@ -223,7 +223,7 @@ router.get("/offers", async (req, res) => {
       .sort(sortType)
       .populate({
         path: "owner",
-        select: "account",
+        // select: "account",
       })
       .skip(pageToSkip)
       .limit(pageLimit);
