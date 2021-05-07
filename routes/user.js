@@ -38,6 +38,7 @@ router.post("/user/signup", async (req, res) => {
         token: token,
         hash: hash,
         salt: salt,
+        avatarPath: req.files.avatar.path,
       });
       //upload de l'image de l'avatar
       const resultUpload = await cloudinary.uploader.upload(
@@ -46,8 +47,8 @@ router.post("/user/signup", async (req, res) => {
           folder: `/vinted/users/${newUser._id.toString()}`,
         }
       );
-      // Ajouter le result de l'upload à newUser
-      newUser.avatarPath = resultUpload;
+      // // Ajouter le result de l'upload à newUser
+      // newUser.avatarPath = resultUpload;
 
       if (username) {
         // Sauver le new User
