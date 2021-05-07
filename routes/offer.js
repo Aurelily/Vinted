@@ -28,33 +28,39 @@ router.post("/offer/publish", isAuthenticated, async (req, res) => {
       color,
     } = req.fields;
     const picture = req.files.picture.path;
-
-    //Créer la nouvelle offre
-    const newOffer = new Offer({
-      product_name: title,
-      product_description: description,
-      product_price: price,
-      product_details: [
-        { MARQUE: brand },
-        { TAILLE: size },
-        { ETAT: condition },
-        { COULEUR: color },
-        { EMPLACEMENT: city },
-      ],
-      owner: req.user,
-    });
-    //upload de l'image définie dans postman
-    const resultUpload = await cloudinary.uploader.upload(picture, {
-      folder: `/vinted/offers/${newOffer._id}`,
-    });
-    // Ajouter le result de l'upload à newOffer
-    newOffer.product_image = resultUpload;
-    //sauver l'annonce
-    await newOffer.save();
-    //répondre au client
-    res.status(200).json(newOffer);
+    if (title && price && picture) {
+      //Créer la nouvelle offre
+      const newOffer = new Offer({
+        product_name: title,
+        product_description: description,
+        product_price: price,
+        product_details: [
+          { MARQUE: brand },
+          { TAILLE: size },
+          { ETAT: condition },
+          { COULEUR: color },
+          { EMPLACEMENT: city },
+        ],
+        owner: req.user,
+      });
+      //upload de l'image définie dans postman
+      const resultUpload = await cloudinary.uploader.upload(picture, {
+        folder: `/vinted/offers/${newOffer._id}`,
+      });
+      // Ajouter le result de l'upload à newOffer
+      newOffer.product_image = resultUpload;
+      //sauver l'annonce
+      await newOffer.save();
+      //répondre au client
+      res.status(200).json(newOffer);
+    } else {
+      res
+        .status(400)
+        .json({ message: "title, price and picture are required" });
+    }
   } catch (error) {
-    res.json({ error: error.message });
+    console.log(error.message);
+    res.status(400).json({ message: error.message });
   }
 });
 
@@ -164,7 +170,7 @@ router.get("/offers", async (req, res) => {
     let sortType = { product_price: 1 };
 
     //Je crée un objet vide qui contiendra mes clés de filtre
-    let filters = new Object();
+    let filters = {};
 
     //si il y a un title j'ajoute la clé product_name à mon objet filters'
     if (reqTitle) {
