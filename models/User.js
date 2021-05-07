@@ -11,7 +11,8 @@ const User = mongoose.model("User", {
       type: String,
     },
     phone: String,
-    avatar: { type: mongoose.Schema.Types.Mixed, default: {} }, //voir plus tard avec react
+    // avatar: { type: mongoose.Schema.Types.Mixed, default: {} }, //voir plus tard avec react
+    avatar: Object,
   },
   token: String,
   hash: String,
