@@ -31,7 +31,7 @@ router.post("/offer/publish", isAuthenticated, async (req, res) => {
     const secPicture = req.files.secPicture.path;
 
     if (title && price && picture) {
-      //Créer la nouvelle offre
+      //Créer la nouvelle offre (sans l'image)
       const newOffer = new Offer({
         product_name: title,
         product_description: description,
@@ -219,7 +219,7 @@ router.get("/offers", async (req, res) => {
 
     //Je mets mon objet filters dans ma requete find() pour obtenir mon résultat et y ajoute mon sort et ma pagination
     let offers = await Offer.find(filters)
-      .select("product_name product_price")
+      // .select("product_name product_price")
       .sort(sortType)
       .populate({
         path: "owner",
