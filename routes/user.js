@@ -26,7 +26,6 @@ router.post("/user/signup", async (req, res) => {
       const token = uid2(64);
 
       //Etape3 : créer un nouvel user dans la BDD
-      //upload de l'image de l'avatar
 
       const newUser = new User({
         email: email,
@@ -40,14 +39,18 @@ router.post("/user/signup", async (req, res) => {
         hash: hash,
         salt: salt,
       });
+      //upload de l'image de l'avatar
       const resultUpload = await cloudinary.uploader.upload(
         req.files.avatar.path,
         {
           folder: `/vinted/users/${newUser._id.toString()}`,
         }
       );
+      // Ajouter le result de l'upload à newUser
+      newUser.avatarPath = resultUpload;
 
       if (username) {
+        // Sauver le new User
         await newUser.save();
         // Etape4 : répondre au client
         res.status(200).json({
