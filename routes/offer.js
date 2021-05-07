@@ -244,11 +244,10 @@ router.get("/offers", async (req, res) => {
 //route GET : /offer/:id => Récupérer les détails d'une annonce en fonction de son id en params
 router.get("/offer/:id", async (req, res) => {
   try {
-    const offer = await Offer.findById(req.params.id);
-    // .populated({
-    //   path: "owner",
-    //   select: "account.username account.phone account.avatar",
-    // });
+    const offer = await Offer.findById(req.params.id).populated({
+      path: "owner",
+      // select: "account.username account.phone account.avatar",
+    });
     res.json(offer);
   } catch (error) {
     console.log(error.message);
