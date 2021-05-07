@@ -244,9 +244,9 @@ router.get("/offers", async (req, res) => {
 //route GET : /offer/:id => Récupérer les détails d'une annonce en fonction de son id en params
 router.get("/offer/:id", async (req, res) => {
   try {
-    const offer = await Offer.findById(req.params.id).populated({
+    const offer = await Offer.findById(req.params.id).populate({
       path: "owner",
-      select: "account.username account.phone account.avatarPath",
+      select: "account.username account.phone",
     });
     res.json(offer);
   } catch (error) {
