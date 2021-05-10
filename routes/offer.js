@@ -2,6 +2,7 @@ const express = require("express");
 const formidable = require("express-formidable");
 const cloudinary = require("cloudinary").v2;
 const router = express.Router();
+const cors = require("cors");
 
 const isAuthenticated = require("../middlewares/isAuthenticated");
 
