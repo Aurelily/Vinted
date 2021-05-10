@@ -15,6 +15,7 @@ const Offer = require("../models/Offer");
 
 //route POST : /offer/publish : Publier une offre
 router.post("/offer/publish", isAuthenticated, async (req, res) => {
+  console.log(req.files.picture.path);
   try {
     const user = req.user;
     //Deconstruction du body
@@ -29,8 +30,7 @@ router.post("/offer/publish", isAuthenticated, async (req, res) => {
       color,
     } = req.fields;
     const picture = req.files.picture.path;
-    const secPicture = req.files.secPicture.path;
-
+    // const secPicture = req.files.secPicture.path;
     if (title && price && picture) {
       //Créer la nouvelle offre (sans l'image)
       const newOffer = new Offer({
@@ -50,13 +50,14 @@ router.post("/offer/publish", isAuthenticated, async (req, res) => {
       const resultUpload = await cloudinary.uploader.upload(picture, {
         folder: `/vinted/offers/${newOffer._id}`,
       });
-      //upload de l'image secondaire du produit définie dans postman
-      const resultSecUpload = await cloudinary.uploader.upload(secPicture, {
-        folder: `/vinted/offers/${newOffer._id}`,
-      });
+      console.log(resultUpload);
+      //     //upload de l'image secondaire du produit définie dans postman
+      //     const resultSecUpload = await cloudinary.uploader.upload(secPicture, {
+      //       folder: `/vinted/offers/${newOffer._id}`,
+      //     });
       // Ajouter le result des upload à newOffer
       newOffer.product_image = resultUpload;
-      newOffer.product_pictures = resultSecUpload;
+      //     newOffer.product_pictures = resultSecUpload;
       //sauver l'annonce
       await newOffer.save();
       //répondre au client
