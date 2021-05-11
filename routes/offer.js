@@ -2,7 +2,10 @@ const express = require("express");
 const formidable = require("express-formidable");
 const cloudinary = require("cloudinary").v2;
 const router = express.Router();
+//Installation de cors pour pouvoir envoyer des requetes d'une page à une autre
 const cors = require("cors");
+//declaration de Stripe avec clé secrète
+const stripe = require("stripe")(process.env.STRIPE_API_SECRET);
 
 const isAuthenticated = require("../middlewares/isAuthenticated");
 
@@ -13,22 +16,24 @@ app.use(formidable());
 const User = require("../models/User");
 const Offer = require("../models/Offer");
 
+//route POST : /offer/payment : Publier une offre
+router.post("/offer/payment", isAuthenticated, async (req, res) => {
+  try {
+    // Recevoir un stripeToken
+    console.log(req.fields.stripeToken);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 //route POST : /offer/publish : Publier une offre
 router.post("/offer/publish", isAuthenticated, async (req, res) => {
   console.log(req.files.picture.path);
   try {
     const user = req.user;
     //Deconstruction du body
-    const {
-      title,
-      description,
-      price,
-      condition,
-      city,
-      brand,
-      size,
-      color,
-    } = req.fields;
+    const { title, description, price, condition, city, brand, size, color } =
+      req.fields;
     const picture = req.files.picture.path;
     // const secPicture = req.files.secPicture.path;
     if (title && price && picture) {
@@ -213,7 +218,7 @@ router.get("/offers", async (req, res) => {
     let pageToSkip = 0;
 
     // Je mets le nombre limite (limit)d'offres par page que je décide par defaut dans une variable (si on a besoin de la modifier plus tard)
-    let pageLimit = 5;
+    let pageLimit = 15;
 
     if (reqPage > 1) {
       pageToSkip = pageLimit * reqPage - pageLimit;

@@ -5,14 +5,14 @@ const cloudinary = require("cloudinary").v2;
 const morgan = require("morgan");
 require("dotenv").config();
 let cors = require("cors");
+//declaration de Stripe avec clé secrète
+const stripe = require("stripe")(process.env.STRIPE_API_SECRET);
 
 //import json des données des users
 const data = require("./datas/users.json");
 
 const app = express();
-
 app.use(formidable());
-
 app.use(morgan("dev"));
 
 //Cette ligne fait bénifier de CORS à toutes les requêtes de notre serveur
