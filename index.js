@@ -5,8 +5,6 @@ const cloudinary = require("cloudinary").v2;
 const morgan = require("morgan");
 require("dotenv").config();
 let cors = require("cors");
-//declaration de Stripe avec clé secrète
-const stripe = require("stripe")(process.env.STRIPE_API_SECRET);
 
 //import json des données des users
 const data = require("./datas/users.json");
@@ -41,8 +39,10 @@ mongoose.connect(process.env.MONGODB_URI, {
 //import et activation des routes
 const userRoutes = require("./routes/user");
 const offerRoutes = require("./routes/offer");
+const paymentRoutes = require("./routes/payment");
 app.use(userRoutes);
 app.use(offerRoutes);
+app.use(paymentRoutes);
 
 //gestion routes inexistantes
 app.all("*", (req, res) => {

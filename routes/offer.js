@@ -4,8 +4,6 @@ const cloudinary = require("cloudinary").v2;
 const router = express.Router();
 //Installation de cors pour pouvoir envoyer des requetes d'une page à une autre
 const cors = require("cors");
-//declaration de Stripe avec clé secrète
-const stripe = require("stripe")(process.env.STRIPE_API_SECRET);
 
 const isAuthenticated = require("../middlewares/isAuthenticated");
 
@@ -15,16 +13,6 @@ app.use(formidable());
 //import des models utilisés
 const User = require("../models/User");
 const Offer = require("../models/Offer");
-
-//route POST : /offer/payment : Publier une offre
-router.post("/offer/payment", isAuthenticated, async (req, res) => {
-  try {
-    // Recevoir un stripeToken
-    console.log(req.fields.stripeToken);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
 
 //route POST : /offer/publish : Publier une offre
 router.post("/offer/publish", isAuthenticated, async (req, res) => {
