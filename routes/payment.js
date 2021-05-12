@@ -16,9 +16,9 @@ router.post("/payment", async (req, res) => {
     // Recevoir un stripeToken
     console.log(req.fields.stripeToken);
     const response = await stripe.charges.create({
-      amount: 2000, // req.fields.price * 100 (car amount est exprimé en centimes dans Stripe)
+      amount: req.fields.amount * 100, // req.fields.price * 100 (car amount est exprimé en centimes dans Stripe)
       currency: "eur",
-      description: "test description",
+      description: req.fields.title,
       source: req.fields.stripeToken,
     });
     //Recevoir une reponse de Stripe
