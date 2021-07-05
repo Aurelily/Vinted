@@ -33,22 +33,22 @@ router.post("/user/signup", async (req, res) => {
           username: username,
           phone: phone,
           password: password,
-          // avatar: req.files.avatar.name,
-          // avatarPath: req.files.avatar.path,
+          avatar: req.files.avatar.name,
+          avatarPath: req.files.avatar.path,
         },
         token: token,
         hash: hash,
         salt: salt,
       });
-      // //upload de l'image de l'avatar
-      // const resultUpload = await cloudinary.uploader.upload(
-      //   req.files.avatar.path,
-      //   {
-      //     folder: `/vinted/users/${newUser._id.toString()}`,
-      //   }
-      // );
-      // // Ajouter le result de l'upload à newUser
-      // newUser.account.avatarPath = resultUpload.secure_url;
+      //upload de l'image de l'avatar
+      const resultUpload = await cloudinary.uploader.upload(
+        req.files.avatar.path,
+        {
+          folder: `/vinted/users/${newUser._id.toString()}`,
+        }
+      );
+      // Ajouter le result de l'upload à newUser
+      newUser.account.avatarPath = resultUpload.secure_url;
 
       if (username) {
         // Sauver le new User

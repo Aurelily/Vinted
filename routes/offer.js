@@ -39,12 +39,12 @@ router.post("/offer/publish", isAuthenticated, async (req, res) => {
         ],
         owner: req.user,
       });
-      //upload de l'image principale du produit définie dans postman
+      //upload de l'image principale du produit
       const resultUpload = await cloudinary.uploader.upload(picture, {
         folder: `/vinted/offers/${newOffer._id}`,
       });
       console.log(resultUpload);
-      //     //upload de l'image secondaire du produit définie dans postman
+      //     //upload de l'image secondaire du produit
       //     const resultSecUpload = await cloudinary.uploader.upload(secPicture, {
       //       folder: `/vinted/offers/${newOffer._id}`,
       //     });
